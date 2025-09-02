@@ -4,7 +4,7 @@
     "slug": "wilo-smart-pump-operator",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icons/pump-icon.png",
+    "icon": "./assets/images/wilo.svg",
     "scheme": "wilosmartpumpoperator",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icons/pump-icon.png",
+        "foregroundImage": "./assets/images/wilo.svg",
         "backgroundColor": "#009C82"
       },
       "edgeToEdgeEnabled": true
