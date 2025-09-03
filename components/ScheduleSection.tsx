@@ -1,36 +1,30 @@
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "../constants/Colors";
 
 interface ScheduleSectionProps {
   isScheduleOn: boolean;
-  toggleSchedule: () => void;
+  // toggleSchedule prop removed since we're not using a button anymore
 }
 
-const ScheduleSection: React.FC<ScheduleSectionProps> = ({
-  isScheduleOn,
-  toggleSchedule,
-}) => {
+
+const ScheduleSection: React.FC<ScheduleSectionProps> = ({ isScheduleOn }) => {
+    console.log("isScheduleOn:", isScheduleOn);
   return (
     <View style={styles.section}>
       <View style={styles.scheduleContainer}>
         <View style={styles.scheduleHeader}>
           <Text style={styles.scheduleTitle}>Schedule</Text>
-          <Pressable
+          <Text
             style={[
-              styles.scheduleButton,
+              styles.scheduleStatusText,
               {
-                backgroundColor: isScheduleOn
-                  ? Colors.statusOn
-                  : Colors.statusOff,
+                color: Colors.white, // Always white for good contrast against green background
               },
             ]}
-            onPress={toggleSchedule}
           >
-            <Text style={styles.scheduleButtonText}>
-              {isScheduleOn ? "ON" : "OFF"}
-            </Text>
-          </Pressable>
+            {isScheduleOn ? "ON" : "OFF"}
+          </Text>
         </View>
 
         {isScheduleOn && (
@@ -65,15 +59,10 @@ const styles = StyleSheet.create({
     color: Colors.white,
     flex: 1,
   },
-  scheduleButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-  },
-  scheduleButtonText: {
-    fontSize: 12,
+  scheduleStatusText: {
+    fontSize: 16, // Increased font size for better visibility
     fontWeight: "bold",
-    color: Colors.white,
+    // Color is dynamically set based on status
   },
   scheduleDetails: {
     marginTop: 12,

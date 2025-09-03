@@ -53,7 +53,7 @@ const Dashboard = () => {
     },
     {
       id: "3",
-      name: "Upper tank(s)",
+      name: "Upper tanks",
       percentage: 45,
       capacity: "12000 L",
       temperature: "23°C",
@@ -85,10 +85,6 @@ const Dashboard = () => {
     }
   };
 
-  const toggleSchedule = () => {
-    setIsScheduleOn(!isScheduleOn);
-  };
-
   const toggleManualSchedule = () => {
     setIsManualScheduleOn(!isManualScheduleOn);
   };
@@ -118,10 +114,7 @@ const Dashboard = () => {
         />
 
         {/* Schedule Section */}
-        <ScheduleSection
-          isScheduleOn={isScheduleOn}
-          toggleSchedule={toggleSchedule}
-        />
+        <ScheduleSection isScheduleOn={isScheduleOn} />
 
         {/* Manual Schedule Toggle */}
         <ManualScheduleSection
