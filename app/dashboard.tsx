@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 import ManualScheduleSection from "../components/ManualScheduleSection";
 import PumpAndModeSection from "../components/PumpAndModeSection";
+import QuickStats from "../components/QuickStats";
 import ScheduleSection from "../components/ScheduleSection";
+import SystemHealth from "../components/SystemHealth";
 import TanksSection from "../components/TanksSection";
 import { Colors } from "../constants/Colors";
 
@@ -19,13 +21,17 @@ interface PumpData {
   isOn: boolean;
   pressure: string;
   flow: string;
+  runtime?: string;
+  nextRun?: string;
 }
 
 const Dashboard = () => {
   const [pumpData, setPumpData] = useState<PumpData>({
     isOn: true,
-    pressure: "0 bar",
-    flow: "0 L/min",
+    pressure: "2.5 bar",
+    flow: "45 L/min",
+    runtime: "2.5 hrs",
+    nextRun: "3:30 PM",
   });
 
   const [isAutoMode, setIsAutoMode] = useState(true);
@@ -89,14 +95,53 @@ const Dashboard = () => {
     setIsManualScheduleOn(!isManualScheduleOn);
   };
 
+  // Quick stats data
+  const quickStats = [
+    {
+      icon: "water" as const,
+      label: "Water Pumped Today",
+      value: "1,250 L",
+      color: Colors.blue,
+    },
+    {
+      icon: "flash" as const,
+      label: "Power Saved",
+      value: "18%",
+      color: Colors.wiloGreen,
+    },
+    {
+      icon: "speedometer" as const,
+      label: "Avg Pressure",
+      value: "2.3 bar",
+      color: Colors.orange,
+    },
+    {
+      icon: "trending-up" as const,
+      label: "Efficiency",
+      value: "87%",
+      color: Colors.statusSuccess,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Ved Vihar</Text>
+        <Text style={styles.headerSubtext}>Facility Dashboard</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* System Health Status */}
+        <SystemHealth
+          status="excellent"
+          message="All systems operating normally. AI is learning your usage patterns."
+          lastUpdated="2 mins ago"
+        />
+
+        {/* Quick Stats */}
+        <QuickStats stats={quickStats} />
+
         {/* Tank Info Cards */}
         <TanksSection
           upperTanks={upperTanks}
@@ -111,10 +156,15 @@ const Dashboard = () => {
           isAutoMode={isAutoMode}
           togglePump={togglePump}
           toggleAutoMode={toggleAutoMode}
+          aiConfidence={87}
         />
 
         {/* Schedule Section */}
-        <ScheduleSection isScheduleOn={isScheduleOn} />
+        <ScheduleSection
+          isScheduleOn={isScheduleOn}
+          nextRunTime="9:00 AM"
+          runsToday={3}
+        />
 
         {/* Manual Schedule Toggle */}
         <ManualScheduleSection
@@ -129,7 +179,7 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.lightGrey,
+    backgroundColor: Colors.background,
   },
   header: {
     backgroundColor: Colors.headerBackground,
@@ -145,7 +195,12 @@ const styles = StyleSheet.create({
     color: Colors.white,
     textAlign: "left",
   },
-
+  headerSubtext: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "left",
+    marginTop: 4,
+  },
   content: {
     flex: 1,
     paddingHorizontal: 16,

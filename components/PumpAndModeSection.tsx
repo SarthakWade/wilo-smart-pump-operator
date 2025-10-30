@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -7,6 +8,8 @@ interface PumpData {
   isOn: boolean;
   pressure: string;
   flow: string;
+  runtime?: string;
+  nextRun?: string;
 }
 
 interface PumpAndModeSectionProps {
@@ -14,6 +17,7 @@ interface PumpAndModeSectionProps {
   isAutoMode: boolean;
   togglePump: () => void;
   toggleAutoMode: () => void;
+  aiConfidence?: number;
 }
 
 const PumpAndModeSection: React.FC<PumpAndModeSectionProps> = ({
@@ -21,6 +25,7 @@ const PumpAndModeSection: React.FC<PumpAndModeSectionProps> = ({
   isAutoMode,
   togglePump,
   toggleAutoMode,
+  aiConfidence = 85,
 }) => {
   return (
     <View style={styles.section}>
@@ -55,10 +60,20 @@ const PumpAndModeSection: React.FC<PumpAndModeSectionProps> = ({
           </Pressable>
 
           <View style={styles.pumpDetails}>
-            <Text style={styles.pumpDetailLabel}>Pressure</Text>
-            <Text style={styles.pumpDetailValue}>{pumpData.pressure}</Text>
-            <Text style={styles.pumpDetailLabel}>Flow</Text>
-            <Text style={styles.pumpDetailValue}>{pumpData.flow}</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.pumpDetailLabel}>Pressure</Text>
+              <Text style={styles.pumpDetailValue}>{pumpData.pressure}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.pumpDetailLabel}>Flow</Text>
+              <Text style={styles.pumpDetailValue}>{pumpData.flow}</Text>
+            </View>
+            {pumpData.runtime && (
+              <View style={styles.detailRow}>
+                <Text style={styles.pumpDetailLabel}>Runtime Today</Text>
+                <Text style={styles.pumpDetailValue}>{pumpData.runtime}</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -76,6 +91,30 @@ const PumpAndModeSection: React.FC<PumpAndModeSectionProps> = ({
             <Text style={styles.modeText}>Automatic</Text>
           </Pressable>
 
+          {isAutoMode && pumpData.nextRun && (
+            <View style={styles.nextRunContainer}>
+              <Ionicons
+                name="time-outline"
+                size={14}
+                color={Colors.wiloGreen}
+              />
+              <Text style={styles.nextRunText}>Next: {pumpData.nextRun}</Text>
+            </View>
+          )}
+          {isAutoMode && (
+            <View style={styles.aiConfidenceContainer}>
+              <Text style={styles.aiLabel}>AI Learning</Text>
+              <View style={styles.confidenceBar}>
+                <View
+                  style={[
+                    styles.confidenceProgress,
+                    { width: `${aiConfidence}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.aiConfidenceText}>{aiConfidence}%</Text>
+            </View>
+          )}
           {!isAutoMode && (
             <Text style={styles.manualModeText}>Manual mode active</Text>
           )}
@@ -193,6 +232,54 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Colors.red,
     textAlign: "center",
+  },
+  detailRow: {
+    marginBottom: 6,
+    alignItems: "center",
+  },
+  nextRunContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: Colors.wiloGreenOpacity10,
+    borderRadius: 12,
+  },
+  nextRunText: {
+    fontSize: 11,
+    color: Colors.wiloGreen,
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+  aiConfidenceContainer: {
+    marginTop: 12,
+    width: "100%",
+    paddingHorizontal: 8,
+  },
+  aiLabel: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  confidenceBar: {
+    height: 6,
+    backgroundColor: Colors.lightGrey,
+    borderRadius: 3,
+    overflow: "hidden",
+    marginBottom: 4,
+  },
+  confidenceProgress: {
+    height: "100%",
+    backgroundColor: Colors.wiloGreen,
+    borderRadius: 3,
+  },
+  aiConfidenceText: {
+    fontSize: 10,
+    color: Colors.wiloGreen,
+    textAlign: "center",
+    fontWeight: "600",
   },
 });
 

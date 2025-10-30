@@ -33,16 +33,17 @@ const TanksSection: React.FC<TanksSectionProps> = ({
   currentUpperTankIndex,
   setCurrentUpperTankIndex,
 }) => {
-  const renderWaterTank = (
-    tank: TankData,
-    isMainTank: boolean = false,
-    showIndicators: boolean = false,
-    currentIndex: number = 0
-  ) => {
+  // Helper function to get tank status
+  const getTankStatus = (percentage: number) => {
+    if (percentage < 20) return { label: "Low", color: Colors.statusCritical };
+    if (percentage < 40) return { label: "Medium", color: Colors.statusWarning };
+    return { label: "Good", color: Colors.statusSuccess };
+  };
+  const renderWaterTank = (tank: TankData, isMainTank: boolean = false) => {
     return (
       <View style={[styles.tankCard, isMainTank && styles.mainTankCard]}>
         <View style={styles.tankContent}>
-          <Text style={styles.tankTitle}>{tank.name}</Text>
+          {isMainTank && <Text style={styles.tankTitle}>{tank.name}</Text>}
 
           {/* Tank section with percentage on the right */}
           <View style={styles.tankSection}>
@@ -77,27 +78,12 @@ const TanksSection: React.FC<TanksSectionProps> = ({
             </Text>
             <Text style={styles.tankDetailText}>{tank.temperature}</Text>
           </View>
-
-          {/* Page indicators inside tank card */}
-          {showIndicators && (
-            <View style={styles.pageIndicators}>
-              {upperTanks.map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.pageIndicator,
-                    currentIndex === i && styles.activePageIndicator,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
         </View>
       </View>
     );
   };
 
-  const renderUpperTankItem = ({
+  const renderUpperTankContent = ({
     item,
     index,
   }: {
@@ -105,8 +91,40 @@ const TanksSection: React.FC<TanksSectionProps> = ({
     index: number;
   }) => {
     return (
-      <View style={styles.upperTankSlide}>
-        {renderWaterTank(item, false, true, index)}
+      <View style={styles.swipeableContent}>
+        {/* Tank section with percentage on the right */}
+        <View style={styles.tankSection}>
+          {/* Water Tank Visualization */}
+          <View style={styles.tankContainer}>
+            <View style={styles.tankBody}>
+              {/* Water level with static height */}
+              <View
+                style={[
+                  styles.waterLevel,
+                  {
+                    height: (item.percentage / 100) * 80,
+                    backgroundColor: "#4A90E2",
+                  },
+                ]}
+              />
+              {/* Tank outline */}
+              <View style={styles.tankOutline} />
+            </View>
+          </View>
+
+          {/* Percentage moved to the right */}
+          <View style={styles.percentageContainer}>
+            <Text style={styles.tankPercentage}>{item.percentage}%</Text>
+          </View>
+        </View>
+
+        {/* Tank details */}
+        <View style={styles.tankDetails}>
+          <Text style={styles.tankDetailText}>
+            {item.currentVolume.toLocaleString()} L
+          </Text>
+          <Text style={styles.tankDetailText}>{item.temperature}</Text>
+        </View>
       </View>
     );
   };
@@ -116,30 +134,52 @@ const TanksSection: React.FC<TanksSectionProps> = ({
       <View style={styles.tanksContainer}>
         {/* Upper Tanks with Swipe */}
         <View style={styles.upperTanksContainer}>
-          <FlatList
-            data={upperTanks}
-            renderItem={renderUpperTankItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={width * 0.45}
-            decelerationRate="fast"
-            onMomentumScrollEnd={(event) => {
-              const index = Math.round(
-                event.nativeEvent.contentOffset.x / (width * 0.45)
-              );
-              setCurrentUpperTankIndex(index);
-            }}
-            style={styles.upperTanksList}
-            // Platform-specific props for better mobile performance
-            removeClippedSubviews={Platform.OS !== "web"}
-            getItemLayout={(data, index) => ({
-              length: width * 0.45,
-              offset: width * 0.45 * index,
-              index,
-            })}
-          />
+          {/* Static Tank Card Container */}
+          <View style={styles.staticTankCard}>
+            {/* Static Upper Tank Title */}
+            <Text style={styles.staticTankTitle}>Upper Tank</Text>
+
+            {/* Swipeable Tank Content Only */}
+            <View style={styles.swipeableArea}>
+              <FlatList
+                data={upperTanks}
+                renderItem={renderUpperTankContent}
+                keyExtractor={(item) => item.id}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={width * 0.45}
+                decelerationRate="fast"
+                onMomentumScrollEnd={(event) => {
+                  const index = Math.round(
+                    event.nativeEvent.contentOffset.x / (width * 0.45)
+                  );
+                  setCurrentUpperTankIndex(index);
+                }}
+                style={styles.upperTanksList}
+                // Platform-specific props for better mobile performance
+                removeClippedSubviews={Platform.OS !== "web"}
+                getItemLayout={(data, index) => ({
+                  length: width * 0.45,
+                  offset: width * 0.45 * index,
+                  index,
+                })}
+              />
+            </View>
+
+            {/* Static Page Indicators */}
+            <View style={styles.staticPageIndicators}>
+              {upperTanks.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.pageIndicator,
+                    currentUpperTankIndex === i && styles.activePageIndicator,
+                  ]}
+                />
+              ))}
+            </View>
+          </View>
         </View>
 
         {/* Main Tank */}
@@ -168,15 +208,41 @@ const styles = StyleSheet.create({
   upperTanksContainer: {
     width: (width - 48) / 2,
     justifyContent: "center", // Center content vertically
-    // Remove fixed height to allow tankCard to determine size
+    alignItems: "center", // Center content horizontally
+  },
+  staticTankCard: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 12,
+    padding: 16,
+    width: "100%",
+    minHeight: 250,
+    elevation: 2,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    // Platform-specific adjustments
+    ...(Platform.OS === "web" && {
+      height: 250,
+    }),
+  },
+  swipeableArea: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  swipeableContent: {
+    width: width * 0.45,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
   },
   upperTanksList: {
     width: "100%",
+    height: "100%",
   },
-  upperTankSlide: {
-    width: width * 0.45,
-    alignItems: "center",
-  },
+
   mainTankContainer: {
     width: (width - 48) / 2,
     justifyContent: "center", // Center content vertically
@@ -187,7 +253,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     width: "100%",
-    minHeight: 250, // Use minHeight instead of fixed height for flexibility
+    minHeight: 200, // Reduced height since no title inside for upper tanks
     alignItems: "center",
     justifyContent: "center", // Center content vertically within the card
     elevation: 2,
@@ -197,11 +263,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     // Platform-specific adjustments
     ...(Platform.OS === "web" && {
-      height: 250, // Fixed height for web consistency
+      height: 200, // Fixed height for web consistency
     }),
   },
   mainTankCard: {
-    // No additional styling - will use same background as upper tanks
+    minHeight: 250, // Main tank keeps larger height for title
+    ...(Platform.OS === "web" && {
+      height: 250, // Fixed height for web consistency
+    }),
   },
   tankContent: {
     flex: 1,
@@ -214,21 +283,31 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.textPrimary,
     marginBottom: 12,
-    textAlign: "left",
+    textAlign: "center",
+  },
+  staticTankTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    marginBottom: 12,
+    textAlign: "center",
   },
   tankSection: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
+    width: "100%",
   },
   tankContainer: {
     position: "relative",
     alignItems: "center",
-    flex: 1,
+    marginRight: 8,
   },
   percentageContainer: {
-    marginLeft: 16,
     justifyContent: "center",
+    alignItems: "center",
+    minWidth: 50,
   },
   tankBody: {
     width: 60,
@@ -256,13 +335,15 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 6,
   },
   tankPercentage: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "bold",
     color: Colors.textPrimary,
   },
   tankDetails: {
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 8,
+    width: "100%",
   },
   tankDetailText: {
     fontSize: 12,
@@ -274,6 +355,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 8,
+  },
+  staticPageIndicators: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 8,
+    width: "100%",
   },
   pageIndicator: {
     width: 6,
